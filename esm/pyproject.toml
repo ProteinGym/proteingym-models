@@ -7,7 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "typer>=0.15.2",
     "loguru>=0.7.3",
-    "pg2-dataset",
+    "pg2-dataset[biopython]",
     "fair-esm>=2.0.0",
     "torch>=2.7.0",
     "bio>=1.8.0",
@@ -23,7 +23,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.uv.sources]
-pg2-dataset = { git = "https://github.com/ProteinGym2/pg2-dataset.git", branch = "main" }
+pg2-dataset = { git = "https://github.com/ProteinGym2/pg2-dataset.git",  rev = "58c327e13bade1effe1312eb2b8d5445016a5a8f" }
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pg2_model_esm"]
