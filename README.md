@@ -1,6 +1,6 @@
 # ProteinGym2 Models
 
-The model zoo for [ProteinGym2](https://github.com/ProteinGym/proteingym-benchmark).
+The model zoo for [ProteinGym](https://github.com/ProteinGym/proteingym-benchmark).
 Each top-level folder is one model: a small Python package with a Dockerfile and a
 model card. The [benchmark repo](https://github.com/ProteinGym/proteingym-benchmark)
 mounts this repo as a git submodule at `models/`, runs the models through its DVC
