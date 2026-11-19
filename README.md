@@ -1,4 +1,17 @@
-# Models
+# ProteinGym2 Models
+
+The model zoo for [ProteinGym2](https://github.com/ProteinGym/proteingym-benchmark).
+Each top-level folder is one model: a small Python package with a Dockerfile and a
+model card. The [benchmark repo](https://github.com/ProteinGym/proteingym-benchmark)
+mounts this repo as a git submodule at `models/`, runs the models through its DVC
+pipelines and shows the model cards on its website.
+
+Submit a model with a pull request here; see the benchmark's [CONTRIBUTING.md](https://github.com/ProteinGym/proteingym-benchmark/blob/main/CONTRIBUTING.md)
+for the submission policy and how CI validates your model.
+
+> [!IMPORTANT]
+> The website treats every top-level folder with a `README.md` as a model card.
+> Don't add non-model top-level folders that contain a `README.md`.
 
 This document describes how a model is structured so the benchmark can run it.
 
@@ -17,7 +30,7 @@ is the evedesign model class named in the model card and its hyperparameters.
 ## Layout
 
 ```tree
-models/<model-folder>/
+<model-folder>/
 ├── README.md            # model card: YAML front matter + description
 ├── Dockerfile           # image the benchmark runs
 ├── Singularity.def      # optional, for HPC clusters without Docker
@@ -68,7 +81,7 @@ hyper_parameters:
 
 Extra fields are allowed. The Markdown body should describe the architecture,
 training data and hyperparameters, credit the original paper/code, and state
-licences and build-time network access (see [CONTRIBUTING.md](../CONTRIBUTING.md#model-submission-policy)).
+licences and build-time network access (see the [submission policy](https://github.com/ProteinGym/proteingym-benchmark/blob/main/CONTRIBUTING.md#model-submission-policy)).
 
 ## The evedesign runner
 
@@ -128,7 +141,7 @@ COPY src/ src/
 RUN uv sync --no-cache
 
 # Bake weights into the image at build time; containers may run without network.
-# See models/esmc/Dockerfile for a pinned Hugging Face download.
+# See esmc/Dockerfile for a pinned Hugging Face download.
 
 ENTRYPOINT ["uv", "run", "<console-script>"]
 ```
@@ -141,10 +154,10 @@ e.g. `blosum62 = "proteingym.models.blosum62.__main__:app"`.
 The benchmark expects the image to be tagged `<model-folder>:latest`:
 
 ```shell
-docker build -t blosum62:latest models/blosum62
+docker build -t blosum62:latest blosum62
 
 docker run --rm \
-  -v $(pwd)/datasets/splits/Dummy_test_P0DX94.splits.pgdata:/data.pgdata \
+  -v $(pwd)/pls/tests/data/Dummy_test_P0DX94.splits.pgdata:/data.pgdata \
   -v $(pwd)/output:/opt/program/output \
   blosum62:latest train \
   --dataset-file /data.pgdata --target charge --split random --test-fold 0

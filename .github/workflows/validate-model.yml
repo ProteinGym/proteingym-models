@@ -1,0 +1,16 @@
+name: validate-model
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: main
+
+jobs:
+  validate:
+    # The pipeline, metrics and dummy dataset live in the benchmark repo; it
+    # checks out this repo's PR head as its models/ submodule and comments here.
+    uses: ProteinGym/proteingym-benchmark/.github/workflows/validate-model.yml@main
+    permissions:
+      pull-requests: write
+      packages: write
+      contents: read
