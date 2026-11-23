@@ -1,0 +1,64 @@
+[project]
+name = "proteingym-models-progen3"
+version = "0.1.0"
+description = "progen3 model (evedesign-wrapped) submitted to ProteinGym"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "proteingym-base==0.2.0",
+    "evedesign[proteingym]==0.0.8",
+    # overrides progen3's own torch<2.5.2 pin so the CUDA extensions below
+    # build against a CUDA 13 toolkit (see [tool.uv] override-dependencies)
+    "torch==2.13.0",
+    # CUDA extensions built from source against the installed torch
+    # (megablocks is a locally patched copy, see [tool.uv.sources])
+    "megablocks[gg]==0.7.0",
+    "flash-attn==2.7.4.post1",
+    # flash-attn's setup.py imports psutil but does not declare it
+    "psutil",
+    "progen3",
+    # needed in the venv because megablocks/grouped-gemm build without isolation
+    "setuptools",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+progen3 = { git = "https://github.com/Profluent-AI/progen3.git" }
+# megablocks 0.7.0 with csrc/cumsum.h patched to drop the debug_synchronous
+# argument removed from CUB in CUDA 13
+megablocks = { path = "vendor/megablocks-0.7.0" }
+
+[tool.uv]
+# progen3 and megablocks both pin torch<2.5.2
+# megablocks 0.7.0 pins numpy<2.1.0, but proteingym-base 0.2.0 / evedesign
+# 0.0.8 need biotite>=2.0, which needs numpy>=2.1. Ceiling: numba (an
+# evedesign dependency) refuses NumPy > 2.4.
+override-dependencies = ["torch==2.13.0", "numpy>=2.1,<2.5"]
+# their build-system.requires pins (torch<2.5.2, setuptools<70) are
+# unsatisfiable with torch 2.13; build them against the project venv instead,
+# as progen3's own setup.sh does (--no-build-isolation)
+no-build-isolation-package = ["megablocks", "grouped-gemm"]
+
+[tool.uv.extra-build-dependencies]
+flash-attn = [{ requirement = "torch", match-runtime = true }]
+# NOTE: megablocks and grouped-gemm are listed in no-build-isolation-package
+# above, so uv builds them against this project's venv rather than an isolated
+# one. Their setup.py imports torch, which means `uv lock`/`uv sync` only work
+# once torch is already installed here:
+#     uv venv && uv pip install torch==2.13.0 && uv lock
+# (progen3's own setup.sh does the same thing.) The Singularity.def/Dockerfile
+# follow that order at build time.
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/proteingym"]
+
+[tool.ruff]
+line-length = 88
+
+[dependency-groups]
+dev = [
+    "pytest~=8.4.1",
+]

@@ -25,4 +25,4 @@ RUN mkdir -p /opt/program/data && \
     curl -kL https://dl.fbaipublicfiles.com/fair-esm/models/esm_if1_gvp4_t16_142M_UR50.pt \
         -o /opt/program/data/esm_if1_gvp4_t16_142M_UR50.pt
 
-ENTRYPOINT ["uv", "run", "esm-if1"]
+ENTRYPOINT ["uv", "run", "evedesign-proteingym"]

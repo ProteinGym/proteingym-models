@@ -21,4 +21,4 @@ RUN mkdir -p /opt/program/data && \
         --local-dir /opt/program/data/esmc-300m && \
     rm -rf /opt/program/data/esmc-300m/.cache /root/.cache/huggingface
 
-ENTRYPOINT ["uv", "run", "esmc"]
+ENTRYPOINT ["uv", "run", "evedesign-proteingym"]

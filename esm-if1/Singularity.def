@@ -20,6 +20,9 @@ From: python:3.12-slim-bookworm
     cd /opt/program
     uv sync
 
+    # the benchmark binds a host directory here for predictions;
+    # apptainer cannot create a missing bind target inside the image
+    mkdir -p /opt/program/output
     uv run --no-sync python -c "import torch, torch_scatter; from proteingym.models.esm_if1 import model; print('esm_if1.model import OK, torch', torch.__version__)"
 
     curl -kL https://dl.fbaipublicfiles.com/fair-esm/models/esm_if1_gvp4_t16_142M_UR50.pt \
@@ -30,4 +33,4 @@ From: python:3.12-slim-bookworm
 
 %runscript
     cd /opt/program
-    exec uv run --no-sync esm-if1 "$@"
+    exec uv run --no-sync evedesign-proteingym "$@"

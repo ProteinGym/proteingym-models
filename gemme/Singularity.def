@@ -29,6 +29,9 @@ From: python:3.12-slim-bookworm
     cd /opt/program
     uv sync --no-cache
 
+    # the benchmark binds a host directory here for predictions;
+    # apptainer cannot create a missing bind target inside the image
+    mkdir -p /opt/program/output
     # GEMME and JET2 from LCQB; the server's TLS chain is incomplete, so use -k
     # and pin by sha256
     curl -fsSLk https://www.lcqb.upmc.fr/GEMME/package/GEMME.tgz -o /tmp/GEMME.tgz
@@ -44,4 +47,4 @@ From: python:3.12-slim-bookworm
 
 %runscript
     cd /opt/program
-    exec uv run --no-sync gemme "$@"
+    exec uv run --no-sync evedesign-proteingym "$@"

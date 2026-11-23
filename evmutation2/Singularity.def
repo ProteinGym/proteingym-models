@@ -3,7 +3,7 @@ From: python:3.12-slim-bookworm
 
 %setup
     mkdir -p ${SINGULARITY_ROOTFS}/opt/program
-    cp -r src/ pyproject.toml uv.lock README.md .python-version ${SINGULARITY_ROOTFS}/opt/program/
+    cp -r pyproject.toml uv.lock README.md ${SINGULARITY_ROOTFS}/opt/program/
     mkdir -p ${SINGULARITY_ROOTFS}/opt/program/data
     mkdir -p ${SINGULARITY_ROOTFS}/mnt/host-uv-cache
 
@@ -21,6 +21,9 @@ From: python:3.12-slim-bookworm
     cd /opt/program
     uv sync
 
+    # the benchmark binds a host directory here for predictions;
+    # apptainer cannot create a missing bind target inside the image
+    mkdir -p /opt/program/output
     curl -kL https://huggingface.co/thomashopf/evmutation2/resolve/main/msa-only-small.ckpt \
         -o /opt/program/data/msa-only-small.ckpt
 
@@ -29,4 +32,4 @@ From: python:3.12-slim-bookworm
 
 %runscript
     cd /opt/program
-    exec uv run --no-sync evmutation2 "$@"
+    exec uv run --no-sync evedesign-proteingym "$@"

@@ -1,0 +1,39 @@
+Bootstrap: docker
+From: python:3.12-slim-bookworm
+
+%setup
+    mkdir -p ${SINGULARITY_ROOTFS}/opt/program
+    cp -r src/ pyproject.toml uv.lock README.md patch_cuequivariance.py ${SINGULARITY_ROOTFS}/opt/program/
+
+%post
+    # install git, curl, certificates, and a C compiler (needed by triton to
+    # JIT-compile its CUDA wrapper kernels at runtime)
+    apt-get update && apt-get install -y git curl ca-certificates build-essential && rm -rf /var/lib/apt/lists/*
+
+    # install uv (defaults to /root/.local/bin)
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+    # move binaries to a globally accessible system path
+    mv /root/.local/bin/uv /root/.local/bin/uvx /usr/local/bin/
+
+    # sync dependencies
+    cd /opt/program
+    uv sync --no-cache
+
+    # upstream 1.0.2 binds CUEQUIVARIANCE_AVAILABLE only when a GPU is present,
+    # so a CPU-only import raises NameError; bind the default before the try block
+    uv run --no-sync python patch_cuequivariance.py
+
+    # the benchmark binds a host directory here for predictions;
+    # apptainer cannot create a missing bind target inside the image
+    mkdir -p /opt/program/output
+    # fetch weights in the HF hub cache layout that from_pretrained expects
+    mkdir -p /opt/program/data
+    uv run --no-sync hf download yakiyama/MSA-Pairformer --cache-dir /opt/program/data
+
+%environment
+    export PATH="/opt/program/.venv/bin:$PATH"
+
+%runscript
+    cd /opt/program
+    exec uv run --no-sync evedesign-proteingym "$@"

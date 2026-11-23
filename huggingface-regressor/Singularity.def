@@ -18,9 +18,13 @@ From: python:3.12-slim-bookworm
     cd /opt/program
     uv sync --no-cache
 
+    # the benchmark binds a host directory here for predictions;
+    # apptainer cannot create a missing bind target inside the image
+    mkdir -p /opt/program/output
+
 %environment
     export PATH="/opt/program/.venv/bin:$PATH"
 
 %runscript
     cd /opt/program
-    exec uv run --no-sync hfregressor "$@"
+    exec uv run --no-sync evedesign-proteingym "$@"

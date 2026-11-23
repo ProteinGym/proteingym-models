@@ -17,15 +17,15 @@ This document describes how a model is structured so the benchmark can run it.
 
 Models are run through [evedesign](https://github.com/evedesignbio/evedesign),
 which we use as the framework to standardize model building and scoring. Every
-model ships the same generic runner (`__main__.py`); what differs between models
-is the evedesign model class named in the model card and its hyperparameters.
+model shares one generic runner, the `evedesign-proteingym` console script that
+`evedesign[proteingym]` installs; what differs between models is the evedesign
+model class named in the model card and its hyperparameters.
 
 > [!NOTE]
-> All models will use the evedesign runner. The supervised models `pls`,
-> `kermut`, `pkermut` and `huggingface-regressor` still have their own custom
-> entrypoints and have not been migrated yet, so do not use them as a template.
-> Use one of the zero-shot models (e.g. [blosum62](blosum62/),
-> [esm2](esm2/), [esmc](esmc/)) instead.
+> The runner is no longer vendored into each model. It lives upstream in
+> `evedesign.proteingym` and reaches the image through the
+> `evedesign[proteingym]` extra, so a model folder contains no runner code of
+> its own. Every model uses it, supervised ones included.
 
 ## Layout
 
@@ -34,13 +34,19 @@ is the evedesign model class named in the model card and its hyperparameters.
 ├── README.md            # model card: YAML front matter + description
 ├── Dockerfile           # image the benchmark runs
 ├── Singularity.def      # optional, for HPC clusters without Docker
-├── pyproject.toml       # pinned dependencies + console script
+├── pyproject.toml       # pinned dependencies
 ├── uv.lock
 ├── src/proteingym/models/<package>/
-│   ├── __main__.py      # the shared evedesign runner (copy it unchanged)
 │   └── model.py         # only if you write your own evedesign model class
 └── tests/
 ```
+
+A model whose `model_class` already lives in evedesign (e.g.
+`evedesign.models.esm2:ESM2`) has no Python source at all. Drop `src/` and the
+`[build-system]`/`[tool.hatch…]` sections, set `package = false` under
+`[tool.uv]`, and don't copy `src/` in the container recipe. See [esm2](esm2/),
+[eve](eve/), [evmutation](evmutation/), [evmutation2](evmutation2/) and
+[proteinmpnn](proteinmpnn/).
 
 ## Model card
 
@@ -85,9 +91,10 @@ licences and build-time network access (see the [submission policy](https://gith
 
 ## The evedesign runner
 
-`__main__.py` is identical across evedesign models; copy it from an existing
-model (e.g. [blosum62](blosum62/src/proteingym/models/blosum62/__main__.py)).
-It exposes three commands:
+The runner is the `evedesign-proteingym` console script, installed by the
+`evedesign[proteingym]` extra and implemented in
+[`evedesign.proteingym`](https://github.com/evedesignbio/evedesign/blob/main/src/evedesign/proteingym.py).
+There is nothing to copy into a model. It exposes three commands:
 
 - **`train`** – what the benchmark calls. It:
   1. loads the dataset (`proteingym.base.Subsets`) and model card,
@@ -143,11 +150,19 @@ RUN uv sync --no-cache
 # Bake weights into the image at build time; containers may run without network.
 # See esmc/Dockerfile for a pinned Hugging Face download.
 
-ENTRYPOINT ["uv", "run", "<console-script>"]
+ENTRYPOINT ["uv", "run", "evedesign-proteingym"]
 ```
 
-The `<console-script>` is the `[project.scripts]` entry in `pyproject.toml`,
-e.g. `blosum62 = "proteingym.models.blosum62.__main__:app"`.
+The entrypoint is the same for every model: `evedesign-proteingym`, installed
+into the image's venv by the `evedesign[proteingym]` extra. Models no longer
+declare a `[project.scripts]` entry of their own.
+
+Dependencies are pinned to exact PyPI releases
+(`proteingym-base==0.2.0`, `evedesign[<extras>,proteingym]==0.0.8`); nothing is
+fetched from git except the few upstream packages that still need a patched
+revision (see `evmutation`, `tranception`, `aido-rag-16b`). The runner's own
+dependencies — `typer`, `polars`, `rich`, `dill` — arrive through the
+`proteingym` extra and should not be listed again by a model.
 
 ### Build and run
 

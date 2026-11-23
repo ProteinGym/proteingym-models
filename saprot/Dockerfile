@@ -29,4 +29,4 @@ RUN mkdir -p /opt/program/data/SaProt_35M_AF2 /opt/program/bin && \
 
 ENV HF_HUB_OFFLINE=1
 
-ENTRYPOINT ["uv", "run", "saprot"]
+ENTRYPOINT ["uv", "run", "evedesign-proteingym"]

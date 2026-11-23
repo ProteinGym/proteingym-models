@@ -1,0 +1,43 @@
+Bootstrap: docker
+From: python:3.12-slim-bookworm
+
+%setup
+    mkdir -p ${SINGULARITY_ROOTFS}/opt/program
+    cp -r src/ pyproject.toml uv.lock README.md ${SINGULARITY_ROOTFS}/opt/program/
+
+%post
+    # C/C++ compiler for sdists in the lock that build from source
+    apt-get update && apt-get install -y git curl ca-certificates build-essential && rm -rf /var/lib/apt/lists/*
+
+    # install uv (defaults to /root/.local/bin)
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+    mv /root/.local/bin/uv /root/.local/bin/uvx /usr/local/bin/
+
+    cd /opt/program
+    uv sync --no-cache
+
+    # the benchmark binds a host directory here for predictions;
+    # apptainer cannot create a missing bind target inside the image
+    mkdir -p /opt/program/output
+    # LLM goes to the card's hf_cache_dir; the structure encoder is only found via HF_HOME
+    mkdir -p /opt/program/data
+    uv run --no-sync hf download genbio-ai/AIDO.Protein-RAG-16B-proteingym-dms-zeroshot \
+        --cache-dir /opt/program/data/hf_cache
+    HF_HOME=/opt/program/data/hf_home uv run --no-sync hf download genbio-ai/AIDO.StructureEncoder
+
+%environment
+    export PATH="/opt/program/.venv/bin:$PATH"
+    # structure-encoder cache baked in during %post
+    export HF_HOME="/opt/program/data/hf_home"
+    # offline: use the baked caches and avoid writing .locks/ to a read-only filesystem
+    export HF_HUB_OFFLINE=1
+    export TRANSFORMERS_OFFLINE=1
+    # trust_remote_code writes the checkpoint's .py modules here; keep it writable
+    export HF_MODULES_CACHE=/tmp/hf_modules_cache
+    # deepspeed is only imported (never compiles ops); skip its CUDA toolkit check
+    export DS_IGNORE_CUDA_DETECTION=1
+
+%runscript
+    cd /opt/program
+    exec uv run --no-sync evedesign-proteingym "$@"

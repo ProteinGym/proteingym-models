@@ -1,0 +1,52 @@
+[project]
+name = "proteingym-models-aido-rag-16b"
+version = "0.1.0"
+description = "aido-rag-16b model (evedesign-wrapped) submitted to ProteinGym"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "proteingym-base==0.2.0",
+    "evedesign[proteingym]==0.0.8",
+    # matches the version genbio-ai/ModelGenerator validates against; no CUDA
+    # extension is compiled, so the prebuilt wheel is sufficient
+    "torch~=2.6.0",
+    # version the AIDO ProteinGym baseline and the checkpoint's
+    # trust_remote_code modeling files require (see override below)
+    "transformers==4.51.0",
+    "accelerate",
+    "huggingface_hub",
+    "scipy",
+    "biopython",
+    # provides the structure tokenizer (EquiformerEncoderLightning,
+    # ProteinDataset) imported by vendor/misc.py
+    "modelgenerator",
+    "einops",
+    # imported at module level by vendor/misc.py
+    "tabulate",
+    # hard-imported by the checkpoint's trust_remote_code modeling files
+    "deepspeed",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+modelgenerator = { git = "https://github.com/genbio-ai/ModelGenerator.git" }
+
+[tool.uv]
+# modelgenerator pins transformers==4.38.0, and transitively (via bionty/lamindb,
+# unused here) scipy<1.15.0, which conflicts with proteingym-base's scipy>=1.16.2
+# proteingym-base 0.2.0 and evedesign 0.0.8 require biotite>=2.0, which
+# requires numpy>=2.1. That overrides this stack's upstream numpy<2 pins.
+# Ceiling: numba (an evedesign dependency) refuses NumPy > 2.4.
+override-dependencies = ["numpy>=2.1,<2.5", "transformers==4.51.0", "scipy>=1.16.2"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/proteingym"]
+
+[tool.ruff]
+line-length = 88
+
+[dependency-groups]
+dev = ["pytest~=8.4.1"]

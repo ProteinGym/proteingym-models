@@ -1,0 +1,44 @@
+Bootstrap: docker
+# devel image: CUDA extensions build from source with nvcc matching torch's CUDA
+From: nvidia/cuda:13.0.2-devel-ubuntu22.04
+
+%setup
+    mkdir -p ${SINGULARITY_ROOTFS}/opt/program
+    cp -r src/ vendor/ pyproject.toml uv.lock README.md ${SINGULARITY_ROOTFS}/opt/program/
+
+%post
+    apt-get update && apt-get install -y git curl ca-certificates build-essential && rm -rf /var/lib/apt/lists/*
+
+    # install uv (defaults to /root/.local/bin)
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+    mv /root/.local/bin/uv /root/.local/bin/uvx /usr/local/bin/
+
+    # bound nvcc memory; L40S/H100 archs (no GPU at build time); force CUDA extension builds
+    export MAX_JOBS=4
+    export TORCH_CUDA_ARCH_LIST="8.9;9.0"
+    export CUDA_HOME=/usr/local/cuda
+    # keep the managed Python out of /root so non-root Singularity users can run it
+    export UV_PYTHON_INSTALL_DIR=/opt/python
+
+    # megablocks/grouped-gemm build without isolation, so torch must be installed first
+    cd /opt/program
+    uv venv --python 3.12
+    uv pip install --no-cache setuptools torch==2.13.0
+    uv sync --no-cache
+
+    # the benchmark binds a host directory here for predictions;
+    # apptainer cannot create a missing bind target inside the image
+    mkdir -p /opt/program/output
+    uv run --no-sync python -c "import torch, megablocks_ops, grouped_gemm_backend"
+
+        mkdir -p /opt/program/data
+    uv run --no-sync hf download Profluent-Bio/progen3-112m \
+        --local-dir /opt/program/data/progen3-112m
+
+%environment
+    export PATH="/opt/program/.venv/bin:$PATH"
+
+%runscript
+    cd /opt/program
+    exec uv run --no-sync evedesign-proteingym "$@"

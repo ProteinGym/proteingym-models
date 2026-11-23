@@ -1,0 +1,41 @@
+[project]
+name = "proteingym-models-tranception"
+version = "0.1.0"
+description = "tranception model (evedesign-wrapped) submitted to ProteinGym"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "proteingym-base==0.2.0",
+    "evedesign[proteingym]==0.0.8",
+    "torch>=2.5",
+    # vendored model_pytorch.py imports transformers internals removed in 4.36
+    "transformers<4.36",
+    "numpy",
+    "pandas",
+    "datasets",
+    # msa_utils.py calls the clustalo binary directly; evcouplings needs >=1.84
+    "biopython",
+    # evcouplings imports pkg_resources, dropped in setuptools 82
+    "setuptools<82",
+    # direct dependency so the [tool.uv.sources] override below applies
+    "evcouplings",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+# develop branch needed over the last PyPI release
+evcouplings = { git = "https://github.com/debbiemarkslab/EVcouplings.git", branch = "develop" }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/proteingym"]
+
+[tool.ruff]
+line-length = 88
+
+[dependency-groups]
+dev = [
+    "pytest~=8.4.1",
+]

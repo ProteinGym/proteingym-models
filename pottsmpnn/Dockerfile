@@ -30,4 +30,4 @@ ENV POTTSMPNN_DATA_DIR=/opt/program/data
 # matplotlib (imported by the vendored run_utils) needs a writable config dir
 ENV MPLCONFIGDIR=/tmp/mplconfig
 
-ENTRYPOINT ["uv", "run", "pottsmpnn"]
+ENTRYPOINT ["uv", "run", "evedesign-proteingym"]

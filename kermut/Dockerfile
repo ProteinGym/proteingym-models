@@ -20,4 +20,4 @@ COPY uv.lock uv.lock
 COPY src/ src/
 RUN uv sync --no-cache
 
-ENTRYPOINT ["uv", "run", "kermut"]
+ENTRYPOINT ["uv", "run", "evedesign-proteingym"]

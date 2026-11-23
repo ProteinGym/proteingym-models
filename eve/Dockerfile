@@ -12,7 +12,6 @@ WORKDIR /opt/program
 COPY README.md README.md
 COPY pyproject.toml pyproject.toml
 COPY uv.lock uv.lock
-COPY src/ src/
 RUN uv sync --no-cache
 
-ENTRYPOINT ["uv", "run", "eve"]
+ENTRYPOINT ["uv", "run", "evedesign-proteingym"]
