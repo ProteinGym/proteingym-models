@@ -30,7 +30,7 @@ hyper_parameters:
     # than one is present leave null
     structure_name: null
     # "cuda" or "cpu"; falls back to CPU if CUDA is not available
-    device: "cuda"
+    device: "cpu"
 ---
 
 # Model Card for Kermut (evedesign-wrapped)

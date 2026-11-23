@@ -18,6 +18,9 @@ From: python:3.12-slim-bookworm
     cd /opt/program
     uv sync --no-cache
 
+    # the benchmark binds a host directory here for predictions;
+    # apptainer cannot create a missing bind target inside the image
+    mkdir -p /opt/program/output
     # native transformers checkpoint, revision pinned
     mkdir -p /opt/program/data
     uv run --no-sync hf download biohub/ESMC-300M --revision e4bac860f0c502cd80f3aeac3d0ce6524c6627cb \
@@ -29,4 +32,4 @@ From: python:3.12-slim-bookworm
 
 %runscript
     cd /opt/program
-    exec uv run --no-sync esmc "$@"
+    exec uv run --no-sync evedesign-proteingym "$@"

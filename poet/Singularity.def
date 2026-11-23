@@ -1,0 +1,45 @@
+Bootstrap: docker
+# devel image for nvcc (flash-attn may build from source); CUDA must match torch in uv.lock
+From: nvidia/cuda:13.0.2-devel-ubuntu22.04
+
+%setup
+    mkdir -p ${SINGULARITY_ROOTFS}/opt/program
+    cp -r src/ pyproject.toml uv.lock README.md ${SINGULARITY_ROOTFS}/opt/program/
+
+%post
+    # C/C++ host compiler for nvcc
+    apt-get update && apt-get install -y git curl ca-certificates build-essential && rm -rf /var/lib/apt/lists/*
+
+    # install uv (defaults to /root/.local/bin)
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+    mv /root/.local/bin/uv /root/.local/bin/uvx /usr/local/bin/
+
+    # base image ships 3.10; pin 3.12 so a prebuilt flash-attn wheel exists
+    export UV_PYTHON=3.12
+    # keep the managed Python out of /root so non-root Singularity users can run it
+    export UV_PYTHON_INSTALL_DIR=/opt/python
+    # bound flash-attn's from-source build parallelism (each nvcc job uses several GB)
+    export MAX_JOBS=4
+    # no GPU visible at build time: 8.9 = L40S, 9.0 = H100
+    export TORCH_CUDA_ARCH_LIST="8.9;9.0"
+
+    cd /opt/program
+    uv sync --no-cache
+
+    # the benchmark binds a host directory here for predictions;
+    # apptainer cannot create a missing bind target inside the image
+    mkdir -p /opt/program/output
+    # PoET weights and their license from Zenodo
+    mkdir -p /opt/program/data
+    curl -L "https://zenodo.org/records/10061322/files/poet.ckpt?download=1" \
+        -o /opt/program/data/poet.ckpt
+    curl -L "https://zenodo.org/records/10061322/files/LICENSE?download=1" \
+        -o /opt/program/data/LICENSE
+
+%environment
+    export PATH="/opt/program/.venv/bin:$PATH"
+
+%runscript
+    cd /opt/program
+    exec uv run --no-sync evedesign-proteingym "$@"

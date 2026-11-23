@@ -5,11 +5,8 @@ description = "pottsmpnn model (evedesign-wrapped) submitted to ProteinGym"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "typer~=0.16.0",
-    "proteingym-base",
-    "evedesign",
-    "polars[pyarrow]~=1.31.0",
-    "dill~=0.3.8",
+    "proteingym-base==0.2.0",
+    "evedesign[proteingym]==0.0.8",
     # upstream env.yaml pins torch 2.2.1 (cuda 12.1); the model is plain
     # PyTorch, so current torch is used
     "torch",
@@ -25,15 +22,9 @@ dependencies = [
     "scipy",
 ]
 
-[project.scripts]
-pottsmpnn = "proteingym.models.pottsmpnn.__main__:app"
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.uv.sources]
-proteingym-base = { git = "https://github.com/ProteinGym/proteingym-base.git" }
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/proteingym"]

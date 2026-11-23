@@ -9,14 +9,10 @@ dependencies = [
     "kermut",
     "loguru>=0.7.3",
     "numpy>=2.4.2",
-    "proteingym-base",
+    "proteingym-base==0.2.0",
     "polars[pyarrow]",
-    "evedesign>=0.0.6",
-    "dill~=0.3.8",
+    "evedesign[proteingym]==0.0.8",
 ]
-
-[project.scripts]
-pkermut = "proteingym.models.pkermut.__main__:app"
 
 [build-system]
 requires = ["hatchling"]
@@ -27,7 +23,6 @@ packages = ["src/proteingym"]
 
 [tool.uv.sources]
 kermut = { path = "software/kermut-package-kermut-package.zip" }
-proteingym-base = { git = "https://github.com/ProteinGym/proteingym-base.git" }
 
 [dependency-groups]
 dev = [

@@ -24,7 +24,7 @@ hyper_parameters:
     alpha: 1.0
     # Torch device for computing embeddings; "cuda" falls back to CPU if no
     # GPU is available
-    device: cuda
+    device: "cpu"
     # Number of instances to embed at a time
     batch_size: 128
 ---

@@ -1,0 +1,44 @@
+MIT License
+
+Copyright (c) 2023 OATML-Markslab, Pascal Notin, Aaron Kollasch, Daniel Ritter, Lood van Niekerk
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+This license (from https://github.com/OATML-Markslab/ProteinGym) applies to
+the code in this wrapper that is vendored from, or derived from, the official
+ProteinGym "AIDO" baseline (src/proteingym/models/aido_rag_16b/
+vendor/misc.py, plus this wrapper's own model.py, which reimplements that
+baseline's scoring algorithm against the evedesign API) and to all other
+original code in this wrapper directory.
+
+Two files vendored transitively from that baseline
+(vendor/protein.py, vendor/residue_constants.py) originate further upstream
+from DeepMind's AlphaFold and carry their own Apache License 2.0 header
+(Copyright 2021 DeepMind Technologies Limited) at the top of each file - that
+license governs those two files specifically; see
+http://www.apache.org/licenses/LICENSE-2.0 for the full text.
+
+The model weights (genbio-ai/AIDO.Protein-RAG-16B-proteingym-dms-zeroshot and
+genbio-ai/AIDO.StructureEncoder, both on HuggingFace) are NOT covered by this
+license - they are distributed by GenBio AI under the GenBio AI Community
+License Agreement, a separate, non-commercial-use license. See GENBIO_LICENSE
+in this directory for the full text, and the "License" section of README.md
+for a summary of its terms as they apply to this wrapper.

@@ -1,4 +1,4 @@
-from proteingym.models.kermut.__main__ import train
+from evedesign.proteingym import train
 
 from tempfile import TemporaryDirectory
 
@@ -6,7 +6,7 @@ from tempfile import TemporaryDirectory
 def test_train(dummy_data_path, model_card_path, monkeypatch):
     with TemporaryDirectory() as temp_dir:
         monkeypatch.setattr(
-            "proteingym.models.kermut.__main__.ContainerTrainingJobPath.OUTPUT_PATH",
+            "evedesign.proteingym.ContainerTrainingJobPath.OUTPUT_PATH",
             temp_dir,
         )
         train(

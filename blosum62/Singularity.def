@@ -18,6 +18,9 @@ From: python:3.12-slim-bookworm
     cd /opt/program
     uv sync --no-cache
 
+    # the benchmark binds a host directory here for predictions;
+    # apptainer cannot create a missing bind target inside the image
+    mkdir -p /opt/program/output
     # No weights: the substitution matrices ship as Biopython package data
 
 %environment
@@ -25,4 +28,4 @@ From: python:3.12-slim-bookworm
 
 %runscript
     cd /opt/program
-    exec uv run --no-sync blosum62 "$@"
+    exec uv run --no-sync evedesign-proteingym "$@"

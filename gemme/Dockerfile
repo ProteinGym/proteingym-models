@@ -33,4 +33,4 @@ RUN curl -fsSLk https://www.lcqb.upmc.fr/GEMME/package/GEMME.tgz -o /tmp/GEMME.t
     tar xzf /tmp/GEMME.tgz -C /opt/program && tar xzf /tmp/JET2.tgz -C /opt/program && \
     rm /tmp/GEMME.tgz /tmp/JET2.tgz
 
-ENTRYPOINT ["uv", "run", "gemme"]
+ENTRYPOINT ["uv", "run", "evedesign-proteingym"]

@@ -13,7 +13,6 @@ WORKDIR /opt/program
 COPY README.md README.md
 COPY pyproject.toml pyproject.toml
 COPY uv.lock uv.lock
-COPY src/ src/
 RUN uv sync --no-cache
 
 # fetch the model weights from Hugging Face instead of bundling them into
@@ -22,4 +21,4 @@ RUN mkdir -p /opt/program/data && \
     curl -kL https://huggingface.co/thomashopf/evmutation2/resolve/main/msa-only-small.ckpt \
         -o /opt/program/data/msa-only-small.ckpt
 
-ENTRYPOINT ["uv", "run", "evmutation2"]
+ENTRYPOINT ["uv", "run", "evedesign-proteingym"]

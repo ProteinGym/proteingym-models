@@ -43,7 +43,7 @@ hyper_parameters:
     random_seed: 42
     # Device to run the model on ("cpu", "cuda", or "mps"). Training EVE for
     # the default 400,000 steps is only practical on a GPU
-    device: "cuda"
+    device: "cpu"
     # Maximum number of non-focus MSA sequences to train on; deeper MSAs are
     # randomly subsampled (re-weighting is O(depth^2)). null disables
     max_msa_depth: 200000

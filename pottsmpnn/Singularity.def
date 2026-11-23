@@ -18,6 +18,9 @@ From: python:3.12-slim-bookworm
     cd /opt/program
     uv sync --no-cache
 
+    # the benchmark binds a host directory here for predictions;
+    # apptainer cannot create a missing bind target inside the image
+    mkdir -p /opt/program/output
     # all six released checkpoints (~20MB each), selected via checkpoint_path;
     # pinned to the upstream commit the wrapper vendors
     POTTSMPNN_URL=https://github.com/KeatingLab/PottsMPNN/raw/1716f99605ac6c2b916a64f40abfe66ee2468fe3
@@ -37,4 +40,4 @@ From: python:3.12-slim-bookworm
 
 %runscript
     cd /opt/program
-    exec uv run --no-sync pottsmpnn "$@"
+    exec uv run --no-sync evedesign-proteingym "$@"

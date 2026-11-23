@@ -1,0 +1,45 @@
+[project]
+name = "proteingym-models-prosst"
+version = "0.1.0"
+description = "prosst model (evedesign-wrapped) submitted to ProteinGym"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "proteingym-base==0.2.0",
+    "evedesign[proteingym]==0.0.8",
+    # ProSST checkpoints ship custom modeling code (trust_remote_code=True).
+    # Pinned <5: transformers 5 ignores the remote code's list-style
+    # _tied_weights_keys and randomly initializes the MLM decoder.
+    "transformers>=4.46,<5",
+    "torch",
+    # GVP layers of the vendored structure quantizer (structure/encoder/)
+    "torch_geometric",
+    # pure-PyTorch shim (see [tool.uv.sources]); the real torch-scatter has no
+    # prebuilt wheel for this torch version
+    "torch_scatter",
+    # k-means codebooks (structure/static/<vocab>.joblib) are sklearn objects
+    "joblib",
+    "scikit-learn",
+    "biopython",
+    "biotite",
+    "tqdm",
+    "pandas",
+    "numpy",
+    "scipy",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+torch_scatter = { path = "vendor/torch_scatter_shim" }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/proteingym"]
+
+[tool.ruff]
+line-length = 88
+
+[dependency-groups]
+dev = ["pytest~=8.4.1"]

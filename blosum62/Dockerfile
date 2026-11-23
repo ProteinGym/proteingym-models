@@ -17,4 +17,4 @@ RUN uv sync --no-cache
 
 # No weights: the substitution matrices ship as Biopython package data
 
-ENTRYPOINT ["uv", "run", "blosum62"]
+ENTRYPOINT ["uv", "run", "evedesign-proteingym"]

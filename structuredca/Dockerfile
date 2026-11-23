@@ -17,4 +17,4 @@ COPY uv.lock uv.lock
 COPY src/ src/
 RUN uv sync --no-cache
 
-ENTRYPOINT ["uv", "run", "structuredca"]
+ENTRYPOINT ["uv", "run", "evedesign-proteingym"]

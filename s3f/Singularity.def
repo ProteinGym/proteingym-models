@@ -1,0 +1,61 @@
+Bootstrap: docker
+From: python:3.12-slim-bookworm
+
+%setup
+    mkdir -p ${SINGULARITY_ROOTFS}/opt/program
+    cp -r src/ pyproject.toml uv.lock README.md ${SINGULARITY_ROOTFS}/opt/program/
+
+%post
+    # build-essential: KeOps JIT-compiles its CPU kernels with g++.
+    # libxrender1/libxext6: torchdrug imports rdkit.Chem.Draw at load time.
+    apt-get update && apt-get install -y git curl ca-certificates build-essential libxrender1 libxext6 && rm -rf /var/lib/apt/lists/*
+
+    # install uv (defaults to /root/.local/bin)
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+    # move binaries to a globally accessible system path
+    mv /root/.local/bin/uv /root/.local/bin/uvx /usr/local/bin/
+
+    # sync dependencies
+    cd /opt/program
+    uv sync --no-cache
+
+    # the benchmark binds a host directory here for predictions;
+    # apptainer cannot create a missing bind target inside the image
+    mkdir -p /opt/program/output
+    # ESM-2-650M weights + S3F checkpoint (Zenodo record 14257708)
+    mkdir -p /opt/program/data/esm-model-weights
+    curl -fL https://dl.fbaipublicfiles.com/fair-esm/models/esm2_t33_650M_UR50D.pt \
+        -o /opt/program/data/esm-model-weights/esm2_t33_650M_UR50D.pt
+    curl -fL "https://zenodo.org/records/14257708/files/s3f.pth?download=1" \
+        -o /opt/program/data/s3f.pth
+
+    # pre-compile CPU KeOps kernels into a cache model.py copies at runtime
+    export KEOPS_CACHE_FOLDER=/opt/program/keops_cache
+    export S3F_DATA_DIR=/opt/program/data
+    uv run --no-sync python -W ignore - <<'PYEOF'
+import torch
+import torch_geometric.data
+from proteingym.models.s3f.s3f import dataset, gvp, model, protein, surface, task
+from proteingym.models.s3f import model as m
+assert m.IMPORT_AVAILABLE, m._IMPORT_ERROR
+torch.manual_seed(0)
+n = 40
+pos = torch.cumsum(torch.randn(n * 3, 3) * 1.2, 0).float()
+atype = torch.nn.functional.one_hot(torch.tensor([3, 0, 0]).repeat(n), 6)
+pts, nrm, _ = m.surface.atoms_to_points_normals(pos, torch.zeros(len(pos), dtype=torch.long), atomtypes=atype)
+m.surface.knn_atoms(pos, pts, k=20)
+m.surface.knn_atoms(pts, pos[1::3], k=3, batch_x=torch.zeros(len(pts), dtype=torch.long), batch_y=torch.zeros(n, dtype=torch.long))
+m.surface.compute_curvatures(pts, nrm, batch=torch.zeros(len(pts), dtype=torch.long), curvature_scales=[1.0, 2.0, 3.0, 5.0, 10.0])
+m.S3F(variant='s3f', checkpoint_path='/opt/program/data/s3f.pth', device='cpu')._load_task()
+print('s3f import + checkpoint load OK')
+PYEOF
+    chmod -R a+rX /opt/program/keops_cache
+
+%environment
+    export PATH="/opt/program/.venv/bin:$PATH"
+    export S3F_DATA_DIR=/opt/program/data
+
+%runscript
+    cd /opt/program
+    exec uv run --no-sync evedesign-proteingym "$@"
