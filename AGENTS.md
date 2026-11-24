@@ -46,6 +46,10 @@ this repo as a git submodule at `models/`. Read these before changing things:
 - Models must run offline: weights are downloaded at Docker build time.
 - CI lives in the benchmark repo (reusable `validate-model.yml`); the workflow here only
   calls it. Changing what CI does means changing the benchmark repo.
+- The benchmark mounts this repo as a submodule, which records an exact commit, so a merge
+  to `main` here does not reach it on its own. `.github/workflows/notify-benchmark.yml`
+  dispatches `models-main-updated` to the benchmark, whose `bump-models-pin.yml` bumps the
+  pin and opens a pull request there. It needs the `BENCHMARK_DISPATCH_TOKEN` secret.
 
 ## Commands
 
