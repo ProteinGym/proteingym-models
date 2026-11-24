@@ -16,7 +16,7 @@ RUN uv sync --no-cache
 
 # checkpoint referenced by model_file_path in the model card
 RUN mkdir -p /opt/program/data && \
-    curl -L https://files.ipd.uw.edu/pub/ligandmpnn/proteinmpnn_v_48_020.pt \
+    curl -L -f --retry 3 --retry-delay 5 https://files.ipd.uw.edu/pub/ligandmpnn/proteinmpnn_v_48_020.pt \
         -o /opt/program/data/proteinmpnn_v_48_020.pt
 
 ENTRYPOINT ["uv", "run", "evedesign-proteingym"]

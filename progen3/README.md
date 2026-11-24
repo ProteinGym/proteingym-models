@@ -23,11 +23,18 @@ hyper_parameters:
     batch_size: 64
     # Maximum number of tokens per forward pass - bounds GPU memory
     max_batch_tokens: 65536
-    # Device to run the model on (GPU required)
-    device: "cpu"
+    # GPU required: there is no CPU code path (see the note below), so unlike
+    # the rest of the zoo this card cannot ship device: "cpu"
+    device: "cuda"
 ---
 
 # Model Card for ProGen3 (evedesign-wrapped)
+
+> [!IMPORTANT]
+> **ProGen3 requires a GPU.** Its CUDA extensions (`flash-attn`, `megablocks`)
+> initialise CUDA on import, so with no GPU it fails in `torch._C._cuda_init()`
+> with *Found no NVIDIA driver*. Run it with `docker run --gpus all ...` or
+> `singularity run --nv ...`. It therefore cannot pass the CPU-only CI run.
 
 ProGen3 is Profluent Bio's family of order-agnostic autoregressive protein
 language models with a sparse mixture-of-experts architecture (112M-3B
