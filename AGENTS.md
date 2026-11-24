@@ -28,8 +28,10 @@ this repo as a git submodule at `models/`. Read these before changing things:
   Docker creates bind targets, Apptainer cannot.
 - Model cards must ship `device: "cpu"`: CI has no GPU. Override it for a local GPU run by
   passing an edited copy via `--model-card-file` rather than editing the committed card.
-  `poet` is the one exception: it has no `device` hyperparameter and is GPU-only by
-  construction (`.cuda()`/`.half()` throughout its wrapper), so it cannot pass CPU CI.
+  `poet` and `progen3` are the exceptions: both are GPU-only by construction, so
+  neither can pass CPU-only CI. `poet` has no `device` hyperparameter at all
+  (`.cuda()`/`.half()` throughout its wrapper); `progen3` ships `device: "cuda"`
+  because its CUDA extensions initialise CUDA on import.
 - A few models still take an upstream package from git: `evcouplings` (`evmutation`,
   `tranception`), `progen3`, and `modelgenerator`/`openfold`/`dllogger` (`aido-rag-16b`).
   None is pinned to a revision — only `uv.lock` records the commit — so regenerating a

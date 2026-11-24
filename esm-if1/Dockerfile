@@ -22,7 +22,7 @@ RUN uv sync --no-cache
 RUN uv run --no-sync python -c "import torch, torch_scatter; from proteingym.models.esm_if1 import model; print('esm_if1.model import OK, torch', torch.__version__)"
 
 RUN mkdir -p /opt/program/data && \
-    curl -kL https://dl.fbaipublicfiles.com/fair-esm/models/esm_if1_gvp4_t16_142M_UR50.pt \
+    curl -kL -f --retry 3 --retry-delay 5 https://dl.fbaipublicfiles.com/fair-esm/models/esm_if1_gvp4_t16_142M_UR50.pt \
         -o /opt/program/data/esm_if1_gvp4_t16_142M_UR50.pt
 
 ENTRYPOINT ["uv", "run", "evedesign-proteingym"]

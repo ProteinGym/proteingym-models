@@ -18,7 +18,7 @@ RUN uv sync --no-cache
 # fetch the model weights from Hugging Face instead of bundling them into
 # the build context
 RUN mkdir -p /opt/program/data && \
-    curl -kL https://huggingface.co/thomashopf/evmutation2/resolve/main/msa-only-small.ckpt \
+    curl -kL -f --retry 3 --retry-delay 5 https://huggingface.co/thomashopf/evmutation2/resolve/main/msa-only-small.ckpt \
         -o /opt/program/data/msa-only-small.ckpt
 
 ENTRYPOINT ["uv", "run", "evedesign-proteingym"]
