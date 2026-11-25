@@ -1,0 +1,30 @@
+[project]
+name = "proteingym-models-msa-transformer"
+version = "0.1.0"
+description = "MSA Transformer model (evedesign-wrapped) submitted to ProteinGym"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "proteingym-base==0.2.0",
+    "evedesign[proteingym]==0.0.8",
+    "torch",
+    # ships MSA Transformer; esm/__init__.py does not import inverse_folding,
+    # so unlike esm-if1 this needs no torch_scatter shim
+    "fair-esm==2.0.0",
+    "numpy",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/proteingym"]
+
+[tool.ruff]
+line-length = 88
+
+[dependency-groups]
+dev = [
+    "pytest~=8.4.1",
+]
