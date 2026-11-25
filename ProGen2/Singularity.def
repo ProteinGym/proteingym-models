@@ -1,0 +1,38 @@
+Bootstrap: docker
+From: python:3.12-slim-bookworm
+
+%setup
+    mkdir -p ${SINGULARITY_ROOTFS}/opt/program
+    cp -r src/ pyproject.toml uv.lock README.md LICENSE \
+        ${SINGULARITY_ROOTFS}/opt/program/
+
+%post
+    # build-essential only for triton's runtime C-wrapper JIT (same rationale
+    # as the other torch models); nothing here compiles at build time
+    apt-get update && apt-get install -y git curl ca-certificates build-essential && rm -rf /var/lib/apt/lists/*
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    mv /root/.local/bin/uv /root/.local/bin/uvx /usr/local/bin/
+
+    cd /opt/program
+    uv sync --no-cache
+
+    # the benchmark binds a host directory here for predictions;
+    # apptainer cannot create a missing bind target inside the image
+    mkdir -p /opt/program/output
+
+    # official progen2-small checkpoint (561 MB, small enough to bake); -f so a
+    # refused download fails the build instead of saving an error page as weights
+    mkdir -p /opt/program/data/progen2-small
+    curl -fL --retry 3 --retry-delay 5 \
+        https://storage.googleapis.com/sfr-progen-research/checkpoints/progen2-small.tar.gz \
+        -o /tmp/progen2-small.tar.gz
+    tar xzf /tmp/progen2-small.tar.gz -C /opt/program/data/progen2-small
+    rm /tmp/progen2-small.tar.gz
+    test -s /opt/program/data/progen2-small/pytorch_model.bin
+
+%environment
+    export PATH="/opt/program/.venv/bin:$PATH"
+
+%runscript
+    cd /opt/program
+    exec uv run --no-sync evedesign-proteingym "$@"
