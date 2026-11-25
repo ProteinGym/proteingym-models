@@ -1,0 +1,36 @@
+Bootstrap: docker
+From: python:3.12-slim-bookworm
+
+%setup
+    mkdir -p ${SINGULARITY_ROOTFS}/opt/program
+    cp -r src/ pyproject.toml uv.lock README.md ${SINGULARITY_ROOTFS}/opt/program/
+
+%post
+    # build-essential is kept only because torch's triton dependency
+    # JIT-compiles small C wrapper code at runtime
+    apt-get update && apt-get install -y git curl ca-certificates build-essential && rm -rf /var/lib/apt/lists/*
+
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    mv /root/.local/bin/uv /root/.local/bin/uvx /usr/local/bin/
+
+    cd /opt/program
+    uv sync --no-cache
+
+    # the benchmark binds a host directory here for predictions;
+    # apptainer cannot create a missing bind target inside the image
+    mkdir -p /opt/program/output
+
+    # VespaG's own head is 2.6 MB, so it is baked; the ESM-2 3B embedder it
+    # needs (~11 GB) is fetched from the Hub on first use instead, as esm2 does
+    mkdir -p /opt/program/data/vespag
+    curl -fL --retry 3 --retry-delay 5 \
+        https://raw.githubusercontent.com/jschlensok/vespag/main/model_weights/v2/esm2.pt \
+        -o /opt/program/data/vespag/esm2.pt
+    test -s /opt/program/data/vespag/esm2.pt
+
+%environment
+    export PATH="/opt/program/.venv/bin:$PATH"
+
+%runscript
+    cd /opt/program
+    exec uv run --no-sync evedesign-proteingym "$@"

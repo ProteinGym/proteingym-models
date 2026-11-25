@@ -1,0 +1,27 @@
+[project]
+name = "proteingym-models-vespag"
+version = "0.1.0"
+description = "VespaG model (evedesign-wrapped) submitted to ProteinGym"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "proteingym-base==0.2.0",
+    # [esm2] brings torch + transformers for the embedder; the head is four
+    # plain torch layers rebuilt in model.py, so upstream vespag is not a dependency
+    "evedesign[esm2,proteingym]==0.0.8",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/proteingym"]
+
+[tool.ruff]
+line-length = 88
+
+[dependency-groups]
+dev = [
+    "pytest~=8.4.1",
+]
