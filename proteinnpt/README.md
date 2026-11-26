@@ -16,22 +16,11 @@ multi_y: false
 # (proteingym.models.proteinnpt.model.ProteinNPT), which is also where the flat
 # 35-field namespace upstream reads its config from gets assembled.
 hyper_parameters:
-    # Frozen residue embedder. Upstream loads this with its own vendored ESM, so
-    # it must be the fair-esm .pt baked into the image, not a Hub identifier
     embedder_checkpoint_path: "/opt/program/data/esm2_t33_650M_UR50D.pt"
-    # Upstream's name for that embedder; it selects which layer is read, so it
-    # has to match the checkpoint above
     aa_embeddings: "ESM2_650M"
-    # Upstream's published value. Measured at 22.5 s/step on 8 CPU threads for a
-    # 465-residue target at the batch size below, so ~2.6 days per fold; the
-    # 5-residue CI dummy runs all 10000 in ~25 min - see Runtime below
-    num_total_training_steps: 10000
-    # Sequences attended over jointly per training step. The NPT learns across a
-    # whole batch, so this is architectural rather than just a memory knob, and
-    # it is the main cost driver: 26 GB peak for a 465-residue target at this
-    # value, against 5.9 GB for the CI dummy
+    # default step count is 10k
+    num_total_training_steps: 100
     training_num_assay_sequences_per_batch: 425
-    # Device for both the embedder and the NPT; "cpu" is for CI, not real use
     device: "cpu"
 ---
 
