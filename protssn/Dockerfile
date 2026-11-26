@@ -1,0 +1,34 @@
+FROM python:3.12-slim-bookworm
+
+# build-essential only for triton's runtime C-wrapper JIT
+RUN apt-get update && apt-get install -y git curl ca-certificates build-essential && rm -rf /var/lib/apt/lists/*
+
+# https://docs.astral.sh/uv/guides/integration/docker/#available-images
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+WORKDIR /opt/program
+
+COPY README.md README.md
+COPY LICENSE LICENSE
+COPY pyproject.toml pyproject.toml
+COPY uv.lock uv.lock
+COPY src/ src/
+
+RUN uv sync --no-cache
+
+# EGNN checkpoint (148M parameters, ~592 MB) plus the normalization statistics
+# for every supported k, so changing c_alpha_max_neighbors needs no rebuild
+RUN mkdir -p /opt/program/data/norm && \
+    uv run --no-sync hf download tyang816/ProtSSN protssn_k20_h512.pt \
+        --revision cb2d622fb9b6d9c0b3bbf29f03f8f74a973dfb23 \
+        --local-dir /opt/program/data && \
+    test -s /opt/program/data/protssn_k20_h512.pt && \
+    for k in 10 20 30; do \
+        curl -fL --retry 3 --retry-delay 5 \
+            https://raw.githubusercontent.com/tyang816/ProtSSN/9da358e2d5b3ac17e4e1874cc70ae17f67ae7b0f/norm/cath_k${k}_mean_attr.pt \
+            -o /opt/program/data/norm/cath_k${k}_mean_attr.pt && \
+        test -s /opt/program/data/norm/cath_k${k}_mean_attr.pt; \
+    done
+
+# ESM-2 650M is fetched from the Hub on first use rather than baked, matching esm2
+ENTRYPOINT ["uv", "run", "evedesign-proteingym"]
