@@ -1,0 +1,36 @@
+[project]
+name = "proteingym-models-poet2"
+version = "0.1.0"
+description = "PoET-2 model (evedesign-wrapped) submitted to ProteinGym"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "proteingym-base==0.2.0",
+    "evedesign[proteingym]==0.0.8",
+    "torch>=2.6",
+    "numpy",
+    "numba",
+    "pydantic",
+    "tqdm",
+    # flash_attn.bert_padding re-exports einops' rearrange, which the vendored
+    # poet_2 uses; see src/poet_2/models/_flash_compat.py
+    "einops",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+# poet_2 is vendored unmodified apart from one import patch, and its internal
+# imports are absolute ("from poet_2.models import ..."), so it ships as a
+# top-level package rather than nested under proteingym/
+packages = ["src/proteingym", "src/poet_2"]
+
+[tool.ruff]
+line-length = 88
+
+[dependency-groups]
+dev = [
+    "pytest~=8.4.1",
+]
