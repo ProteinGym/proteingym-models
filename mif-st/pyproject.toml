@@ -1,0 +1,32 @@
+[project]
+name = "proteingym-models-mif-st"
+version = "0.1.0"
+description = "MIF-ST model (evedesign-wrapped) submitted to ProteinGym"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "proteingym-base==0.2.0",
+    "evedesign[proteingym]==0.0.8",
+    # sequence-models declares no dependencies of its own on PyPI, so
+    # everything it imports is pinned here instead
+    "sequence-models==1.8.0",
+    "torch",
+    "numpy",
+    "scipy",
+    "biotite",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/proteingym"]
+
+[tool.ruff]
+line-length = 88
+
+[dependency-groups]
+dev = [
+    "pytest~=8.4.1",
+]
