@@ -1,0 +1,47 @@
+[project]
+name = "proteingym-models-proteinnpt"
+version = "0.1.0"
+description = "ProteinNPT model (evedesign-wrapped) submitted to ProteinGym"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "proteingym-base==0.2.0",
+    # [esm2] brings torch + transformers for the frozen embedder
+    "evedesign[esm2,proteingym]==0.0.8",
+    # upstream ProteinNPT (MIT); vendors its own ESM fork for MSA Transformer
+    "proteinnpt",
+    # ProteinNPT reads sequence embeddings from an .h5 keyed by assay id
+    "h5py",
+    "pandas",
+    # imported by upstream's vendored Tranception (utils/tranception/utils/
+    # scoring_utils.py) but not declared in its setup.py
+    "datasets",
+    # model_utils.py imports wandb unconditionally; also undeclared upstream.
+    # Disabled via WANDB_MODE in the image: the benchmark runs offline and
+    # the submission policy forbids telemetry at runtime
+    "wandb",
+    # upstream vendors Tranception, whose model_pytorch.py imports
+    # transformers internals (Conv1D) removed in 4.36. Same pin the
+    # tranception model uses. Harmless here: the frozen embedder is
+    # upstream's vendored ESM loading a fair-esm .pt, not transformers
+    "transformers>=4.30,<4.36",
+    "scipy",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+proteinnpt = { git = "https://github.com/OATML-Markslab/ProteinNPT.git" }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/proteingym"]
+
+[tool.ruff]
+line-length = 88
+
+[dependency-groups]
+dev = [
+    "pytest~=8.4.1",
+]
