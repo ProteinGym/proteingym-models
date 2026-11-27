@@ -1,0 +1,36 @@
+name: notify-benchmark
+
+# Tells proteingym-benchmark to fast-forward its models pin.
+#
+# That repository mounts this one as a git submodule, which records one exact
+# commit -- a submodule cannot point at a branch -- so a merge here does not
+# reach the benchmark, its pipelines or its website on its own. This sends a
+# repository_dispatch that its bump-models-pin.yml listens for; that workflow
+# bumps the pin, regenerates the model lists from the cards and opens a pull
+# request there for a human to merge.
+#
+# Needs a BENCHMARK_DISPATCH_TOKEN secret: a PAT with Contents: read and write
+# on ProteinGym/proteingym-benchmark. The dispatch API answers 204 whether or
+# not anything is listening, so a missing or unscoped token fails here loudly
+# rather than silently doing nothing.
+
+on:
+  push:
+    branches: [main]
+
+# Nothing is needed from this repository; the PAT authorises the dispatch.
+permissions: {}
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ask the benchmark to bump its models pin
+        env:
+          GH_TOKEN: ${{ secrets.BENCHMARK_DISPATCH_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh api --method POST \
+            repos/ProteinGym/proteingym-benchmark/dispatches \
+            -f event_type=models-main-updated
+          echo "::notice::asked proteingym-benchmark to bump its models pin to ${GITHUB_SHA:0:7}"
